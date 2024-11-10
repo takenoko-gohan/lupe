@@ -1,22 +1,34 @@
-use clap::Parser;
+mod cmd;
+mod proto;
 
-/// Simple program to greet a person
-#[derive(Parser, Debug)]
+use clap::{Parser, Subcommand};
+
+#[derive(Parser)]
 #[command(version, about, long_about = None)]
-struct Args {
-    /// Name of the person to greet
-    #[arg(short, long)]
-    name: String,
-
-    /// Number of times to greet
-    #[arg(short, long, default_value_t = 1)]
-    count: u8,
+#[command(propagate_version = true)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
 }
 
-fn main() {
-    let args = Args::parse();
+#[derive(Subcommand)]
+enum Commands {
+    /// Start Server
+    Server,
+    Client,
+}
 
-    for _ in 0..args.count {
-        println!("Hello {}!", args.name);
+#[tokio::main]
+async fn main() {
+    let cli = Cli::parse();
+
+    // You can check for the existence of subcommands, and if found use their
+    // matches just as you would the top level cmd
+    if let Err(e) = match &cli.command {
+        Commands::Server => cmd::server::run().await,
+        Commands::Client => cmd::client::run().await,
+    } {
+        eprintln!("Error: {}", e);
+        std::process::exit(1);
     }
 }
