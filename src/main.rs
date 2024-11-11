@@ -1,6 +1,8 @@
 mod cmd;
-mod proto;
+mod pb;
+mod util;
 
+use crate::cmd::client::Operation;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -11,11 +13,14 @@ struct Cli {
     command: Commands,
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug, Clone)]
 enum Commands {
     /// Start Server
     Server,
-    Client,
+    Client {
+        #[arg(value_enum)]
+        operation: Operation,
+    },
 }
 
 #[tokio::main]
@@ -26,7 +31,7 @@ async fn main() {
     // matches just as you would the top level cmd
     if let Err(e) = match &cli.command {
         Commands::Server => cmd::server::run().await,
-        Commands::Client => cmd::client::run().await,
+        Commands::Client { operation } => cmd::client::run(operation).await,
     } {
         eprintln!("Error: {}", e);
         std::process::exit(1);
