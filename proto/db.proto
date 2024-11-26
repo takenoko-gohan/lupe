@@ -1,0 +1,49 @@
+syntax = "proto3";
+package db;
+
+service Management {
+  rpc HealthCheck (HealthCheckRequest) returns (HealthCheckReply);
+  rpc Shutdown (ShutdownRequest) returns (ShutdownReply);
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckReply {
+  string message = 1;
+}
+
+message ShutdownRequest {}
+
+message ShutdownReply {
+  string message = 1;
+}
+
+service Operation {
+  rpc CreateTable (CreateTableRequest) returns (CreateTableReply);
+  rpc RawQuery (RawQueryRequest) returns (RawQueryReply);
+}
+
+message CreateTableRequest {
+  enum DataType {
+    ALB = 0;
+  }
+  string table_name = 2;
+  string s3_prefix = 3;
+}
+
+message CreateTableReply {
+  string message = 1;
+}
+
+message RawQueryRequest {
+  string query = 1;
+}
+
+message RawQueryReply {
+  repeated string columns = 1;
+  repeated Row rows = 2;
+}
+
+message Row {
+  repeated string values = 1;
+}

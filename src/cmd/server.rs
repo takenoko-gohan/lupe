@@ -1,9 +1,11 @@
-use crate::pb::duckdb::management_server::ManagementServer;
-use crate::pb::ManagementImpl;
+use crate::pb::db::management_server::ManagementServer;
+use crate::pb::db::operation_server::OperationServer;
+use crate::pb::{ManagementImpl, OperationImpl};
 use crate::util::uds::get_sock_path;
+use duckdb::Connection;
 use tokio::net::UnixListener;
 use tokio::signal;
-use tokio::sync::mpsc;
+use tokio::sync::{mpsc, Mutex};
 use tonic::codegen::tokio_stream::wrappers::UnixListenerStream;
 use tonic::transport::Server;
 
@@ -32,24 +34,29 @@ async fn shutdown_signal(mut shutdown_rx: mpsc::Receiver<()>) {
     }
     println!("shutdown signal received");
 
-    println!("remove socket file");
+    println!("removing socket file...");
     std::fs::remove_file(get_sock_path()).expect("failed to remove socket file");
+
+    println!("shutdown successfully");
 }
 
-pub(crate) async fn run() -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) async fn exec() -> Result<(), Box<dyn std::error::Error>> {
     println!("Starting server...");
 
     let sock_path = get_sock_path();
     println!("Listening on {:?}", sock_path);
 
     let (shutdown_tx, shutdown_rx) = mpsc::channel(1);
+    let db_conn = Mutex::new(Connection::open_in_memory()?);
 
     let mgmt = ManagementImpl::builder().shutdown_tx(shutdown_tx).build();
+    let ope = OperationImpl::builder().db_conn(db_conn).build();
 
     let uds = UnixListener::bind(sock_path)?;
     let uds_stream = UnixListenerStream::new(uds);
     Server::builder()
         .add_service(ManagementServer::new(mgmt))
+        .add_service(OperationServer::new(ope))
         .serve_with_incoming_shutdown(uds_stream, shutdown_signal(shutdown_rx))
         .await?;
 

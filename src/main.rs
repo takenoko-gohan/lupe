@@ -2,7 +2,7 @@ mod cmd;
 mod pb;
 mod util;
 
-use crate::cmd::client::Operation;
+use crate::cmd::load::DataType;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -15,12 +15,22 @@ struct Cli {
 
 #[derive(Subcommand, Debug, Clone)]
 enum Commands {
-    /// Start Server
-    Server,
-    Client {
-        #[arg(value_enum)]
-        operation: Operation,
+    /// Load logs into DuckDB
+    Load {
+        #[arg(long, value_enum)]
+        data_type: DataType,
+        #[arg(long)]
+        s3_prefix: String,
+        #[arg(long)]
+        table_name: Option<String>,
     },
+    /// Clear all logs from DuckDB
+    Clear,
+    /// Execute Raw Query
+    Query { query: String },
+    /// Start Server
+    #[command(hide = true)]
+    Server,
 }
 
 #[tokio::main]
@@ -30,8 +40,14 @@ async fn main() {
     // You can check for the existence of subcommands, and if found use their
     // matches just as you would the top level cmd
     if let Err(e) = match &cli.command {
-        Commands::Server => cmd::server::run().await,
-        Commands::Client { operation } => cmd::client::run(operation).await,
+        Commands::Load {
+            data_type,
+            table_name,
+            s3_prefix,
+        } => cmd::load::exec(data_type.clone(), table_name.clone(), s3_prefix.to_string()).await,
+        Commands::Clear => cmd::clear::exec().await,
+        Commands::Query { query } => cmd::query::exec(query.clone()).await,
+        Commands::Server => cmd::server::exec().await,
     } {
         eprintln!("Error: {}", e);
         std::process::exit(1);
