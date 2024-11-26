@@ -5,7 +5,7 @@ use tonic::transport::{Channel, Endpoint, Uri};
 use tower::service_fn;
 
 pub(crate) fn get_sock_path() -> PathBuf {
-    std::env::temp_dir().join("alb-logview.sock")
+    std::env::temp_dir().join("lupe.sock")
 }
 
 pub(crate) async fn create_channel() -> Result<Channel, Box<dyn std::error::Error>> {
