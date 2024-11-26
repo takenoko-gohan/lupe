@@ -2,7 +2,7 @@ use chrono::Utc;
 use typed_builder::TypedBuilder;
 
 #[derive(TypedBuilder)]
-pub(crate) struct AlbLogsRow {
+pub(crate) struct Log {
     conn_type: Option<String>,
     time: Option<chrono::DateTime<Utc>>,
     elb: Option<String>,
@@ -35,7 +35,7 @@ pub(crate) struct AlbLogsRow {
     conn_trace_id: Option<String>,
 }
 
-impl AlbLogsRow {
+impl Log {
     pub(crate) fn get_field(&self, field_name: &str) -> Option<String> {
         match field_name {
             "type" => self.conn_type.clone(),
@@ -72,3 +72,4 @@ impl AlbLogsRow {
         }
     }
 }
+

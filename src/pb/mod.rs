@@ -4,7 +4,7 @@ use crate::pb::db::{
     CreateTableReply, CreateTableRequest, HealthCheckReply, HealthCheckRequest, RawQueryReply,
     RawQueryRequest, Row, ShutdownReply, ShutdownRequest,
 };
-use crate::util::db_schema::AlbLogsRow;
+use crate::db::alb::Log;
 use tokio::sync::{mpsc, Mutex, RwLock};
 use tonic::{Request, Response, Status};
 use typed_builder::TypedBuilder;
@@ -166,7 +166,7 @@ impl Operation for OperationImpl {
             .query_map([], |row| {
                 let time = row.get::<_, i64>("time")?;
                 let request_creation_time = row.get::<_, i64>("request_creation_time")?;
-                let row = AlbLogsRow::builder()
+                let row = Log::builder()
                     .conn_type(row.get("type").ok())
                     .time(chrono::DateTime::from_timestamp_micros(time))
                     .elb(row.get("elb").ok())
@@ -205,7 +205,7 @@ impl Operation for OperationImpl {
             })
             .map_err(|e| Status::internal(format!("failed to execute query: {}", e)))?;
 
-        let mut alb_logs_rows: Vec<AlbLogsRow> = Vec::new();
+        let mut alb_logs_rows: Vec<Log> = Vec::new();
         for row in rows_stmt {
             alb_logs_rows
                 .push(row.map_err(|e| Status::internal(format!("failed to get row: {}", e)))?);

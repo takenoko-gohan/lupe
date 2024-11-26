@@ -1,6 +1,7 @@
 mod cmd;
 mod pb;
 mod util;
+mod db;
 
 use crate::cmd::load::DataType;
 use clap::{Parser, Subcommand};
