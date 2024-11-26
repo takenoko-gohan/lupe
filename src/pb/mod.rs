@@ -5,7 +5,7 @@ use crate::pb::db::{
     RawQueryRequest, Row, ShutdownReply, ShutdownRequest,
 };
 use crate::util::db_schema::AlbLogsRow;
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::{mpsc, Mutex, RwLock};
 use tonic::{Request, Response, Status};
 use typed_builder::TypedBuilder;
 
@@ -48,6 +48,8 @@ impl Management for ManagementImpl {
 #[derive(Debug, TypedBuilder)]
 pub(crate) struct OperationImpl {
     db_conn: Mutex<duckdb::Connection>,
+    #[builder(default)]
+    init: RwLock<bool>,
 }
 
 impl OperationImpl {
@@ -72,16 +74,21 @@ impl Operation for OperationImpl {
             .await
             .map_err(|e| Status::internal(format!("failed to get connection: {}", e)))?;
 
-        conn.execute_batch(
-            "INSTALL httpfs;
-            LOAD httpfs;
-            CREATE SECRET (
-                TYPE S3,
-                PROVIDER CREDENTIAL_CHAIN,
-                CHAIN 'config;sts;sso;env'
-            );",
-        )
-        .map_err(|e| Status::internal(format!("failed to initialize: {}", e)))?;
+        if !*self.init.read().await {
+            conn.execute_batch(
+                "INSTALL httpfs;
+                LOAD httpfs;
+                CREATE SECRET (
+                    TYPE S3,
+                    PROVIDER CREDENTIAL_CHAIN,
+                    CHAIN 'config;sts;sso;env'
+                );",
+            ).map_err(|e| Status::internal(format!("failed to initialize: {}", e)))?;
+
+            let mut init = self.init.write().await;
+            *init = true;
+        }
+
 
         let result = conn.execute(
             format!(
