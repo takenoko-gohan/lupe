@@ -19,7 +19,7 @@ enum Commands {
     /// Load logs into DuckDB
     Load {
         #[arg(long, value_enum)]
-        data_type: TableType,
+        table_type: TableType,
         #[arg(long)]
         s3_uri: String,
         #[arg(long)]
@@ -42,10 +42,10 @@ async fn main() {
     // matches just as you would the top level cmd
     if let Err(e) = match &cli.command {
         Commands::Load {
-            data_type,
+            table_type,
             table_name,
             s3_uri,
-        } => cmd::load::exec(data_type.clone(), table_name.clone(), s3_uri.to_string()).await,
+        } => cmd::load::exec(table_type.clone(), table_name.clone(), s3_uri.to_string()).await,
         Commands::Clear => cmd::clear::exec().await,
         Commands::Query { query } => cmd::query::exec(query.clone()).await,
         Commands::Server => cmd::server::exec().await,
