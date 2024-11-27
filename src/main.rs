@@ -21,7 +21,7 @@ enum Commands {
         #[arg(long, value_enum)]
         data_type: TableType,
         #[arg(long)]
-        s3_prefix: String,
+        s3_uri: String,
         #[arg(long)]
         table_name: Option<String>,
     },
@@ -44,8 +44,8 @@ async fn main() {
         Commands::Load {
             data_type,
             table_name,
-            s3_prefix,
-        } => cmd::load::exec(data_type.clone(), table_name.clone(), s3_prefix.to_string()).await,
+            s3_uri,
+        } => cmd::load::exec(data_type.clone(), table_name.clone(), s3_uri.to_string()).await,
         Commands::Clear => cmd::clear::exec().await,
         Commands::Query { query } => cmd::query::exec(query.clone()).await,
         Commands::Server => cmd::server::exec().await,

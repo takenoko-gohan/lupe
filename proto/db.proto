@@ -26,7 +26,7 @@ service Operation {
 message CreateTableRequest {
   TableType table_type = 1;
   string table_name = 2;
-  string s3_prefix = 3;
+  string s3_uri = 3;
 }
 
 enum TableType {

@@ -88,7 +88,7 @@ impl Operation for OperationImpl {
             _ => return Err(Status::invalid_argument("invalid table type")),
         };
 
-        match client.create_table(&req.table_name, &req.s3_prefix) {
+        match client.create_table(&req.table_name, &req.s3_uri) {
             Ok(_) => Ok(Response::new(CreateTableReply {
                 message: "OK".into(),
             })),

@@ -24,7 +24,7 @@ impl From<TableType> for i32 {
 pub(crate) async fn exec(
     table_type: TableType,
     table_name: Option<String>,
-    s3_prefix: String,
+    s3_uri: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let exe_path = std::env::current_exe()?;
 
@@ -55,7 +55,7 @@ pub(crate) async fn exec(
     let create_table_req = Request::new(CreateTableRequest {
         table_type: table_type.into(),
         table_name,
-        s3_prefix,
+        s3_uri,
     });
     ope_client.create_table(create_table_req).await?;
 
