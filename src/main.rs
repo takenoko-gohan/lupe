@@ -1,9 +1,9 @@
 mod cmd;
 mod pb;
+mod repo;
 mod util;
-mod db;
 
-use crate::cmd::load::DataType;
+use crate::cmd::load::TableType;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -19,7 +19,7 @@ enum Commands {
     /// Load logs into DuckDB
     Load {
         #[arg(long, value_enum)]
-        data_type: DataType,
+        data_type: TableType,
         #[arg(long)]
         s3_prefix: String,
         #[arg(long)]

@@ -24,11 +24,14 @@ service Operation {
 }
 
 message CreateTableRequest {
-  enum DataType {
-    ALB = 0;
-  }
+  TableType table_type = 1;
   string table_name = 2;
   string s3_prefix = 3;
+}
+
+enum TableType {
+  ALB = 0;
+  S3 = 1;
 }
 
 message CreateTableReply {

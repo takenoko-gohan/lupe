@@ -1,4 +1,3 @@
-use crate::pb;
 use crate::pb::db::management_client::ManagementClient;
 use crate::pb::db::operation_client::OperationClient;
 use crate::pb::db::{CreateTableRequest, HealthCheckRequest};
@@ -8,20 +7,22 @@ use tokio::process::Command;
 use tonic::Request;
 
 #[derive(ValueEnum, Debug, Clone)]
-pub(crate) enum DataType {
+pub(crate) enum TableType {
     Alb,
+    S3,
 }
 
-impl From<pb::db::create_table_request::DataType> for DataType {
-    fn from(data_type: pb::db::create_table_request::DataType) -> Self {
-        match data_type {
-            pb::db::create_table_request::DataType::Alb => DataType::Alb,
+impl From<TableType> for i32 {
+    fn from(table_type: TableType) -> i32 {
+        match table_type {
+            TableType::Alb => 0,
+            TableType::S3 => 1,
         }
     }
 }
 
 pub(crate) async fn exec(
-    data_type: DataType,
+    table_type: TableType,
     table_name: Option<String>,
     s3_prefix: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -45,12 +46,14 @@ pub(crate) async fn exec(
         }
     }
 
-    let table_name = table_name.unwrap_or_else(|| match data_type {
-        DataType::Alb => "alb_logs".to_string(),
+    let table_name = table_name.unwrap_or_else(|| match table_type {
+        TableType::Alb => "alb_logs".to_string(),
+        TableType::S3 => "s3_logs".to_string(),
     });
 
     let mut ope_client = OperationClient::new(channel);
     let create_table_req = Request::new(CreateTableRequest {
+        table_type: table_type.into(),
         table_name,
         s3_prefix,
     });
