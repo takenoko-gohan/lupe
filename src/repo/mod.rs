@@ -405,16 +405,6 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                         .collect()
                 }
             },
-            //DataType::Date32 => {}
-            //DataType::Date64 => {}
-            //DataType::Time32(_) => {}
-            //DataType::Time64(_) => {}
-            //DataType::Duration(_) => {}
-            //DataType::Interval(_) => {}
-            //DataType::Binary => {}
-            //DataType::FixedSizeBinary(_) => {}
-            //DataType::LargeBinary => {}
-            //DataType::BinaryView => {}
             DataType::Utf8 => {
                 let Some(array) = value.as_any().downcast_ref::<StringArray>() else {
                     return Err(format!("Failed to downcast to StringArray: {:?}", value).into());
@@ -451,18 +441,6 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     })
                     .collect()
             }
-            //DataType::List(_) => {}
-            //DataType::ListView(_) => {}
-            //DataType::FixedSizeList(_, _) => {}
-            //DataType::LargeList(_) => {}
-            //DataType::LargeListView(_) => {}
-            //DataType::Struct(_) => {}
-            //DataType::Union(_, _) => {}
-            //DataType::Dictionary(_, _) => {}
-            //DataType::Decimal128(_, _) => {}
-            //DataType::Decimal256(_, _) => {}
-            //DataType::Map(_, _) => {}
-            //DataType::RunEndEncoded(_, _) => {}
             _ => Err(format!("Unsupported data type: {:?}", value).into()),
         }
     }
