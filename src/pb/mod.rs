@@ -6,7 +6,6 @@ use crate::pb::db::{
 };
 use crate::repo;
 use crate::repo::{alb, s3, Client};
-use std::sync::Arc;
 use tokio::sync::{mpsc, Mutex, RwLock};
 use tonic::{Request, Response, Status};
 use typed_builder::TypedBuilder;
@@ -84,9 +83,9 @@ impl Operation for OperationImpl {
             *init = true;
         }
 
-        let client: Arc<dyn Client> = match req.table_type {
-            0 => Arc::new(alb::ClientImpl::builder().conn(conn).build()),
-            1 => Arc::new(s3::ClientImpl::builder().conn(conn).build()),
+        let client: Box<dyn Client> = match req.table_type {
+            0 => Box::new(alb::ClientImpl::builder().conn(conn).build()),
+            1 => Box::new(s3::ClientImpl::builder().conn(conn).build()),
             _ => return Err(Status::invalid_argument("invalid table type")),
         };
 
