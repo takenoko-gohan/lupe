@@ -14,6 +14,7 @@ use std::sync::Arc;
 use typed_builder::TypedBuilder;
 
 pub(crate) mod alb;
+pub(crate) mod s3;
 
 pub(crate) fn init(conn: &Connection) -> duckdb::Result<()> {
     conn.execute_batch(
