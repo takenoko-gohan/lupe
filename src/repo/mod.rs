@@ -420,7 +420,9 @@ impl TryFrom<&Arc<dyn Array>> for Values {
             }
             DataType::LargeUtf8 => {
                 let Some(array) = value.as_any().downcast_ref::<LargeStringArray>() else {
-                    return Err(format!("Failed to downcast to StringArray: {:?}", value).into());
+                    return Err(
+                        format!("Failed to downcast to LargeStringArray: {:?}", value).into(),
+                    );
                 };
                 array
                     .iter()
@@ -432,7 +434,9 @@ impl TryFrom<&Arc<dyn Array>> for Values {
             }
             DataType::Utf8View => {
                 let Some(array) = value.as_any().downcast_ref::<StringViewArray>() else {
-                    return Err(format!("Failed to downcast to StringArray: {:?}", value).into());
+                    return Err(
+                        format!("Failed to downcast to StringViewArray: {:?}", value).into(),
+                    );
                 };
                 array
                     .iter()
