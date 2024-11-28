@@ -25,8 +25,8 @@ enum Commands {
         #[arg(long)]
         table_name: Option<String>,
     },
-    /// Clear all logs from DuckDB
-    Clear,
+    /// Clean up the server
+    Clean,
     /// Execute Raw Query
     Query { query: String },
     /// Start Server
@@ -46,7 +46,7 @@ async fn main() {
             table_name,
             s3_uri,
         } => cmd::load::exec(table_type.clone(), table_name.clone(), s3_uri.to_string()).await,
-        Commands::Clear => cmd::clear::exec().await,
+        Commands::Clean => cmd::clean::exec().await,
         Commands::Query { query } => cmd::query::exec(query.clone()).await,
         Commands::Server => cmd::server::exec().await,
     } {
