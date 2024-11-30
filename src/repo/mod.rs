@@ -1,18 +1,19 @@
 use crate::pb::db::{RawQueryReply, Row};
+use chrono::NaiveTime;
 use duckdb::arrow::array::{
     Array, AsArray, LargeStringArray, RecordBatch, StringArray, StringViewArray,
 };
 use duckdb::arrow::datatypes::{
     DataType, Date32Type, Date64Type, DurationMicrosecondType, DurationMillisecondType,
     DurationNanosecondType, DurationSecondType, Float16Type, Float32Type, Float64Type, Int16Type,
-    Int32Type, Int64Type, Int8Type, IntervalDayTimeType, IntervalUnit, IntervalYearMonthType,
-    Time32MillisecondType, Time32SecondType, Time64MicrosecondType, Time64NanosecondType, TimeUnit,
-    TimestampMicrosecondType, TimestampMillisecondType, TimestampNanosecondType,
-    TimestampSecondType, UInt16Type, UInt32Type, UInt64Type, UInt8Type,
+    Int32Type, Int64Type, Int8Type, IntervalDayTimeType, IntervalMonthDayNanoType, IntervalUnit,
+    IntervalYearMonthType, Time32MillisecondType, Time32SecondType, Time64MicrosecondType,
+    Time64NanosecondType, TimeUnit, TimestampMicrosecondType, TimestampMillisecondType,
+    TimestampNanosecondType, TimestampSecondType, UInt16Type, UInt32Type, UInt64Type, UInt8Type,
 };
 use duckdb::Connection;
 use std::collections::HashMap;
-use std::ops::Index;
+use std::ops::{Add, Index};
 use std::sync::Arc;
 use typed_builder::TypedBuilder;
 
@@ -508,14 +509,52 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                         .map(|v| match v {
                             Some(v) => {
                                 let day = v.days;
-                                let time = v.milliseconds;
-                                format!("{} day {} millisecond", day, time)
+                                let time = NaiveTime::default()
+                                    .add(chrono::Duration::milliseconds(v.milliseconds as i64))
+                                    .to_string();
+
+                                let mut value = "".to_string();
+                                if day != 0 {
+                                    value.push_str(&format!("{} days", day));
+                                }
+                                if time != "00:00:00" {
+                                    value.push_str(&format!(" {}", time));
+                                }
+
+                                value
                             }
                             None => "NULL".to_string(),
                         })
                         .collect())
                 }
-                _ => Err(format!("Unsupported interval unit: {:?}", unit).into()),
+                IntervalUnit::MonthDayNano => {
+                    let array = value.as_primitive::<IntervalMonthDayNanoType>();
+                    Ok(array
+                        .iter()
+                        .map(|v| match v {
+                            Some(v) => {
+                                let month = v.months;
+                                let day = v.days;
+                                let time = NaiveTime::default()
+                                    .add(chrono::Duration::nanoseconds(v.nanoseconds))
+                                    .to_string();
+                                let mut value = "".to_string();
+                                if month != 0 {
+                                    value.push_str(&format!("{} months", month));
+                                }
+                                if day != 0 {
+                                    value.push_str(&format!(" {} days", day));
+                                }
+                                if time != "00:00:00" {
+                                    value.push_str(&format!(" {}", time));
+                                }
+
+                                value
+                            }
+                            None => "NULL".to_string(),
+                        })
+                        .collect::<Values>())
+                }
             },
             DataType::Binary => {
                 let array = value.as_binary::<i32>();
