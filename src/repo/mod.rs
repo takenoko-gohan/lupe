@@ -1,12 +1,15 @@
 use crate::pb::db::{RawQueryReply, Row};
-use chrono::DateTime;
 use duckdb::arrow::array::{
-    Array, BooleanArray, Float16Array, Float32Array, Float64Array, Int16Array, Int32Array,
-    Int64Array, Int8Array, LargeStringArray, RecordBatch, StringArray, StringViewArray,
-    TimestampMicrosecondArray, TimestampMillisecondArray, TimestampNanosecondArray,
-    TimestampSecondArray, UInt16Array, UInt32Array, UInt64Array, UInt8Array,
+    Array, AsArray, LargeStringArray, RecordBatch, StringArray, StringViewArray,
 };
-use duckdb::arrow::datatypes::{DataType, TimeUnit};
+use duckdb::arrow::datatypes::{
+    DataType, Date32Type, Date64Type, DurationMicrosecondType, DurationMillisecondType,
+    DurationNanosecondType, DurationSecondType, Float16Type, Float32Type, Float64Type, Int16Type,
+    Int32Type, Int64Type, Int8Type, IntervalDayTimeType, IntervalUnit, IntervalYearMonthType,
+    Time32MillisecondType, Time32SecondType, Time64MicrosecondType, Time64NanosecondType, TimeUnit,
+    TimestampMicrosecondType, TimestampMillisecondType, TimestampNanosecondType,
+    TimestampSecondType, UInt16Type, UInt32Type, UInt64Type, UInt8Type,
+};
 use duckdb::Connection;
 use std::collections::HashMap;
 use std::ops::Index;
@@ -186,226 +189,378 @@ impl TryFrom<&Arc<dyn Array>> for Values {
         match value.data_type() {
             DataType::Null => Ok(vec!["NULL".to_string(); value.len()].into()),
             DataType::Boolean => {
-                let Some(array) = value.as_any().downcast_ref::<BooleanArray>() else {
-                    return Err(format!("Failed to downcast to BooleanArray: {:?}", value).into());
-                };
-                array
+                let array = value.as_boolean();
+                Ok(array
                     .iter()
                     .map(|v| match v {
-                        Some(v) => Ok(v.to_string()),
-                        None => Ok("NULL".to_string()),
+                        Some(v) => v.to_string(),
+                        None => "NULL".to_string(),
                     })
-                    .collect()
+                    .collect::<Values>())
             }
             DataType::Int8 => {
-                let Some(array) = value.as_any().downcast_ref::<Int8Array>() else {
-                    return Err(format!("Failed to downcast to Int8Array: {:?}", value).into());
-                };
-                array
+                let array = value.as_primitive::<Int8Type>();
+                Ok(array
                     .iter()
                     .map(|v| match v {
-                        Some(v) => Ok(v.to_string()),
-                        None => Ok("NULL".to_string()),
+                        Some(v) => v.to_string(),
+                        None => "NULL".to_string(),
                     })
-                    .collect()
+                    .collect::<Values>())
             }
             DataType::Int16 => {
-                let Some(array) = value.as_any().downcast_ref::<Int16Array>() else {
-                    return Err(format!("Failed to downcast to Int16Array: {:?}", value).into());
-                };
-                array
+                let array = value.as_primitive::<Int16Type>();
+                Ok(array
                     .iter()
                     .map(|v| match v {
-                        Some(v) => Ok(v.to_string()),
-                        None => Ok("NULL".to_string()),
+                        Some(v) => v.to_string(),
+                        None => "NULL".to_string(),
                     })
-                    .collect()
+                    .collect::<Values>())
             }
             DataType::Int32 => {
-                let Some(array) = value.as_any().downcast_ref::<Int32Array>() else {
-                    return Err(format!("Failed to downcast to Int32Array: {:?}", value).into());
-                };
-                array
+                let array = value.as_primitive::<Int32Type>();
+                Ok(array
                     .iter()
                     .map(|v| match v {
-                        Some(v) => Ok(v.to_string()),
-                        None => Ok("NULL".to_string()),
+                        Some(v) => v.to_string(),
+                        None => "NULL".to_string(),
                     })
-                    .collect()
+                    .collect::<Values>())
             }
             DataType::Int64 => {
-                let Some(array) = value.as_any().downcast_ref::<Int64Array>() else {
-                    return Err(format!("Failed to downcast to Int64Array: {:?}", value).into());
-                };
-                array
+                let array = value.as_primitive::<Int64Type>();
+                Ok(array
                     .iter()
                     .map(|v| match v {
-                        Some(v) => Ok(v.to_string()),
-                        None => Ok("NULL".to_string()),
+                        Some(v) => v.to_string(),
+                        None => "NULL".to_string(),
                     })
-                    .collect()
+                    .collect::<Values>())
             }
             DataType::UInt8 => {
-                let Some(array) = value.as_any().downcast_ref::<UInt8Array>() else {
-                    return Err(format!("Failed to downcast to UInt8Array: {:?}", value).into());
-                };
-                array
+                let array = value.as_primitive::<UInt8Type>();
+                Ok(array
                     .iter()
                     .map(|v| match v {
-                        Some(v) => Ok(v.to_string()),
-                        None => Ok("NULL".to_string()),
+                        Some(v) => v.to_string(),
+                        None => "NULL".to_string(),
                     })
-                    .collect()
+                    .collect::<Values>())
             }
             DataType::UInt16 => {
-                let Some(array) = value.as_any().downcast_ref::<UInt16Array>() else {
-                    return Err(format!("Failed to downcast to UInt16Array: {:?}", value).into());
-                };
-                array
+                let array = value.as_primitive::<UInt16Type>();
+                Ok(array
                     .iter()
                     .map(|v| match v {
-                        Some(v) => Ok(v.to_string()),
-                        None => Ok("NULL".to_string()),
+                        Some(v) => v.to_string(),
+                        None => "NULL".to_string(),
                     })
-                    .collect()
+                    .collect::<Values>())
             }
             DataType::UInt32 => {
-                let Some(array) = value.as_any().downcast_ref::<UInt32Array>() else {
-                    return Err(format!("Failed to downcast to UInt32Array: {:?}", value).into());
-                };
-                array
+                let array = value.as_primitive::<UInt32Type>();
+                Ok(array
                     .iter()
                     .map(|v| match v {
-                        Some(v) => Ok(v.to_string()),
-                        None => Ok("NULL".to_string()),
+                        Some(v) => v.to_string(),
+                        None => "NULL".to_string(),
                     })
-                    .collect()
+                    .collect::<Values>())
             }
             DataType::UInt64 => {
-                let Some(array) = value.as_any().downcast_ref::<UInt64Array>() else {
-                    return Err(format!("Failed to downcast to UInt64Array: {:?}", value).into());
-                };
-                array
+                let array = value.as_primitive::<UInt64Type>();
+                Ok(array
                     .iter()
                     .map(|v| match v {
-                        Some(v) => Ok(v.to_string()),
-                        None => Ok("NULL".to_string()),
+                        Some(v) => v.to_string(),
+                        None => "NULL".to_string(),
                     })
-                    .collect()
+                    .collect::<Values>())
             }
             DataType::Float16 => {
-                let Some(array) = value.as_any().downcast_ref::<Float16Array>() else {
-                    return Err(format!("Failed to downcast to Float16Array: {:?}", value).into());
-                };
-                array
+                let array = value.as_primitive::<Float16Type>();
+                Ok(array
                     .iter()
                     .map(|v| match v {
-                        Some(v) => Ok(v.to_string()),
-                        None => Ok("NULL".to_string()),
+                        Some(v) => v.to_string(),
+                        None => "NULL".to_string(),
                     })
-                    .collect()
+                    .collect::<Values>())
             }
             DataType::Float32 => {
-                let Some(array) = value.as_any().downcast_ref::<Float32Array>() else {
-                    return Err(format!("Failed to downcast to Float32Array: {:?}", value).into());
-                };
-                array
+                let array = value.as_primitive::<Float32Type>();
+                Ok(array
                     .iter()
                     .map(|v| match v {
-                        Some(v) => Ok(v.to_string()),
-                        None => Ok("NULL".to_string()),
+                        Some(v) => v.to_string(),
+                        None => "NULL".to_string(),
                     })
-                    .collect()
+                    .collect::<Values>())
             }
             DataType::Float64 => {
-                let Some(array) = value.as_any().downcast_ref::<Float64Array>() else {
-                    return Err(format!("Failed to downcast to Float64Array: {:?}", value).into());
-                };
-                array
+                let array = value.as_primitive::<Float64Type>();
+                Ok(array
                     .iter()
                     .map(|v| match v {
-                        Some(v) => Ok(v.to_string()),
-                        None => Ok("NULL".to_string()),
+                        Some(v) => v.to_string(),
+                        None => "NULL".to_string(),
                     })
-                    .collect()
+                    .collect::<Values>())
             }
-            DataType::Timestamp(time_unit, _) => match time_unit {
+            DataType::Timestamp(unit, _) => match unit {
                 TimeUnit::Second => {
-                    let Some(array) = value.as_any().downcast_ref::<TimestampSecondArray>() else {
-                        return Err(format!("Failed to downcast to Int64Array: {:?}", value).into());
-                    };
-                    array
-                        .iter()
-                        .map(|v| match v {
-                            Some(v) => {
-                                let Some(dt) = DateTime::from_timestamp(v, 0) else {
-                                    return Err(
-                                        format!("Failed to convert to DateTime: {:?}", v).into()
-                                    );
-                                };
-                                Ok(dt.to_rfc3339())
-                            }
-                            None => Ok("NULL".to_string()),
-                        })
-                        .collect()
+                    let array = value.as_primitive::<TimestampSecondType>();
+                    let mut values = Vec::new();
+                    for i in 0..array.len() {
+                        let v = array.value_as_datetime(i);
+                        match v {
+                            Some(v) => values.push(v.to_string()),
+                            None => values.push("NULL".to_string()),
+                        }
+                    }
+                    Ok(values.into())
                 }
                 TimeUnit::Millisecond => {
-                    let Some(array) = value.as_any().downcast_ref::<TimestampMillisecondArray>()
-                    else {
-                        return Err(format!("Failed to downcast to Int64Array: {:?}", value).into());
-                    };
-                    array
-                        .iter()
-                        .map(|v| match v {
-                            Some(v) => {
-                                let Some(dt) = DateTime::from_timestamp_millis(v) else {
-                                    return Err(
-                                        format!("Failed to convert to DateTime: {:?}", v).into()
-                                    );
-                                };
-                                Ok(dt.to_rfc3339())
-                            }
-                            None => Ok("NULL".to_string()),
-                        })
-                        .collect()
+                    let array = value.as_primitive::<TimestampMillisecondType>();
+                    let mut values = Vec::new();
+                    for i in 0..array.len() {
+                        let v = array.value_as_datetime(i);
+                        match v {
+                            Some(v) => values.push(v.to_string()),
+                            None => values.push("NULL".to_string()),
+                        }
+                    }
+                    Ok(values.into())
                 }
                 TimeUnit::Microsecond => {
-                    let Some(array) = value.as_any().downcast_ref::<TimestampMicrosecondArray>()
-                    else {
-                        return Err(format!("Failed to downcast to Int64Array: {:?}", value).into());
-                    };
-                    array
-                        .iter()
-                        .map(|v| match v {
-                            Some(v) => {
-                                let Some(dt) = DateTime::from_timestamp_micros(v) else {
-                                    return Err(
-                                        format!("Failed to convert to DateTime: {:?}", v).into()
-                                    );
-                                };
-                                Ok(dt.to_rfc3339())
-                            }
-                            None => Ok("NULL".to_string()),
-                        })
-                        .collect()
+                    let array = value.as_primitive::<TimestampMicrosecondType>();
+                    let mut values = Vec::new();
+                    for i in 0..array.len() {
+                        let v = array.value_as_datetime(i);
+                        match v {
+                            Some(v) => values.push(v.to_string()),
+                            None => values.push("NULL".to_string()),
+                        }
+                    }
+                    Ok(values.into())
                 }
                 TimeUnit::Nanosecond => {
-                    let Some(array) = value.as_any().downcast_ref::<TimestampNanosecondArray>()
-                    else {
-                        return Err(format!("Failed to downcast to Int64Array: {:?}", value).into());
-                    };
-                    array
+                    let array = value.as_primitive::<TimestampNanosecondType>();
+                    let mut values = Vec::new();
+                    for i in 0..array.len() {
+                        let v = array.value_as_datetime(i);
+                        match v {
+                            Some(v) => values.push(v.to_string()),
+                            None => values.push("NULL".to_string()),
+                        }
+                    }
+                    Ok(values.into())
+                }
+            },
+            DataType::Date32 => {
+                let array = value.as_primitive::<Date32Type>();
+                let mut values = Vec::new();
+                for i in 0..array.len() {
+                    let v = array.value_as_date(i);
+                    match v {
+                        Some(v) => values.push(v.to_string()),
+                        None => values.push("NULL".to_string()),
+                    }
+                }
+                Ok(values.into())
+            }
+            DataType::Date64 => {
+                let array = value.as_primitive::<Date64Type>();
+                let mut values = Vec::new();
+                for i in 0..array.len() {
+                    let v = array.value_as_date(i);
+                    match v {
+                        Some(v) => values.push(v.to_string()),
+                        None => values.push("NULL".to_string()),
+                    }
+                }
+                Ok(values.into())
+            }
+            DataType::Time32(unit) => match unit {
+                TimeUnit::Second => {
+                    let array = value.as_primitive::<Time32SecondType>();
+                    let mut values = Vec::new();
+                    for i in 0..array.len() {
+                        let v = array.value_as_time(i);
+                        match v {
+                            Some(v) => values.push(v.to_string()),
+                            None => values.push("NULL".to_string()),
+                        }
+                    }
+                    Ok(values.into())
+                }
+                TimeUnit::Millisecond => {
+                    let array = value.as_primitive::<Time32MillisecondType>();
+                    let mut values = Vec::new();
+                    for i in 0..array.len() {
+                        let v = array.value_as_time(i);
+                        match v {
+                            Some(v) => values.push(v.to_string()),
+                            None => values.push("NULL".to_string()),
+                        }
+                    }
+                    Ok(values.into())
+                }
+                _ => Err(format!("Unsupported time unit: {:?}", unit).into()),
+            },
+            DataType::Time64(unit) => match unit {
+                TimeUnit::Microsecond => {
+                    let array = value.as_primitive::<Time64MicrosecondType>();
+                    let mut values = Vec::new();
+                    for i in 0..array.len() {
+                        let v = array.value_as_time(i);
+                        match v {
+                            Some(v) => values.push(v.to_string()),
+                            None => values.push("NULL".to_string()),
+                        }
+                    }
+                    Ok(values.into())
+                }
+                TimeUnit::Nanosecond => {
+                    let array = value.as_primitive::<Time64NanosecondType>();
+                    let mut values = Vec::new();
+                    for i in 0..array.len() {
+                        let v = array.value_as_time(i);
+                        match v {
+                            Some(v) => values.push(v.to_string()),
+                            None => values.push("NULL".to_string()),
+                        }
+                    }
+                    Ok(values.into())
+                }
+                _ => Err(format!("Unsupported time unit: {:?}", unit).into()),
+            },
+            DataType::Duration(unit) => match unit {
+                TimeUnit::Second => {
+                    let array = value.as_primitive::<DurationSecondType>();
+                    let mut values = Vec::new();
+                    for i in 0..array.len() {
+                        let v = array.value_as_duration(i);
+                        match v {
+                            Some(v) => values.push(v.to_string()),
+                            None => values.push("NULL".to_string()),
+                        }
+                    }
+                    Ok(values.into())
+                }
+                TimeUnit::Millisecond => {
+                    let array = value.as_primitive::<DurationMillisecondType>();
+                    let mut values = Vec::new();
+                    for i in 0..array.len() {
+                        let v = array.value_as_duration(i);
+                        match v {
+                            Some(v) => values.push(v.to_string()),
+                            None => values.push("NULL".to_string()),
+                        }
+                    }
+                    Ok(values.into())
+                }
+                TimeUnit::Microsecond => {
+                    let array = value.as_primitive::<DurationMicrosecondType>();
+                    let mut values = Vec::new();
+                    for i in 0..array.len() {
+                        let v = array.value_as_duration(i);
+                        match v {
+                            Some(v) => values.push(v.to_string()),
+                            None => values.push("NULL".to_string()),
+                        }
+                    }
+                    Ok(values.into())
+                }
+                TimeUnit::Nanosecond => {
+                    let array = value.as_primitive::<DurationNanosecondType>();
+                    let mut values = Vec::new();
+                    for i in 0..array.len() {
+                        let v = array.value_as_duration(i);
+                        match v {
+                            Some(v) => values.push(v.to_string()),
+                            None => values.push("NULL".to_string()),
+                        }
+                    }
+                    Ok(values.into())
+                }
+            },
+            DataType::Interval(unit) => match unit {
+                IntervalUnit::YearMonth => {
+                    let array = value.as_primitive::<IntervalYearMonthType>();
+                    Ok(array
                         .iter()
                         .map(|v| match v {
                             Some(v) => {
-                                let dt = DateTime::from_timestamp_nanos(v);
-                                Ok(dt.to_rfc3339())
+                                let year = v / 12;
+                                let month = v % 12;
+                                format!("{} year {} month", year, month)
                             }
-                            None => Ok("NULL".to_string()),
+                            None => "NULL".to_string(),
                         })
-                        .collect()
+                        .collect())
                 }
+                IntervalUnit::DayTime => {
+                    let array = value.as_primitive::<IntervalDayTimeType>();
+                    Ok(array
+                        .iter()
+                        .map(|v| match v {
+                            Some(v) => {
+                                let day = v.days;
+                                let time = v.milliseconds;
+                                format!("{} day {} millisecond", day, time)
+                            }
+                            None => "NULL".to_string(),
+                        })
+                        .collect())
+                }
+                _ => Err(format!("Unsupported interval unit: {:?}", unit).into()),
             },
+            DataType::Binary => {
+                let array = value.as_binary::<i32>();
+                Ok(array
+                    .iter()
+                    .map(|v| match v {
+                        Some(v) => String::from_utf8(v.to_vec())
+                            .unwrap_or_else(|e| format!("Failed to convert to string: {:?}", e)),
+                        None => "NULL".to_string(),
+                    })
+                    .collect())
+            }
+            DataType::FixedSizeBinary(_) => {
+                let array = value.as_fixed_size_binary();
+                Ok(array
+                    .iter()
+                    .map(|v| match v {
+                        Some(v) => String::from_utf8(v.to_vec())
+                            .unwrap_or_else(|e| format!("Failed to convert to string: {:?}", e)),
+                        None => "NULL".to_string(),
+                    })
+                    .collect())
+            }
+            DataType::LargeBinary => {
+                let array = value.as_binary::<i64>();
+                Ok(array
+                    .iter()
+                    .map(|v| match v {
+                        Some(v) => String::from_utf8(v.to_vec())
+                            .unwrap_or_else(|e| format!("Failed to convert to string: {:?}", e)),
+                        None => "NULL".to_string(),
+                    })
+                    .collect())
+            }
+            DataType::BinaryView => {
+                let array = value.as_binary_view();
+                Ok(array
+                    .iter()
+                    .map(|v| match v {
+                        Some(v) => String::from_utf8(v.to_vec())
+                            .unwrap_or_else(|e| format!("Failed to convert to string: {:?}", e)),
+                        None => "NULL".to_string(),
+                    })
+                    .collect())
+            }
             DataType::Utf8 => {
                 let Some(array) = value.as_any().downcast_ref::<StringArray>() else {
                     return Err(format!("Failed to downcast to StringArray: {:?}", value).into());
