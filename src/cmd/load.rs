@@ -1,6 +1,7 @@
 use crate::pb::db::management_client::ManagementClient;
 use crate::pb::db::operation_client::OperationClient;
 use crate::pb::db::{CreateTableRequest, HealthCheckRequest};
+#[cfg(windows)]
 use crate::util::named_pipe;
 #[cfg(unix)]
 use crate::util::uds;
@@ -37,7 +38,7 @@ pub(crate) async fn exec(
         }
 
         let channel = uds::create_channel().await?;
-        let mut mgmt_client = ManagementClient::new(channel.clone());
+        let mgmt_client = ManagementClient::new(channel.clone());
 
         (channel, mgmt_client)
     };

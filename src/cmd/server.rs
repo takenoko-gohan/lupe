@@ -60,12 +60,6 @@ async fn shutdown_signal(mut shutdown_rx: mpsc::Receiver<()>) {
 pub(crate) async fn exec() -> Result<(), Box<dyn std::error::Error>> {
     println!("Starting server...");
 
-    #[cfg(unix)]
-    {
-        let sock_path = get_sock_path();
-        println!("Listening on {:?}", sock_path);
-    }
-
     let (shutdown_tx, shutdown_rx) = mpsc::channel(1);
     let db_conn = Mutex::new(Connection::open_in_memory()?);
 
@@ -74,8 +68,11 @@ pub(crate) async fn exec() -> Result<(), Box<dyn std::error::Error>> {
 
     #[cfg(unix)]
     let uds_stream = {
+        let sock_path = get_sock_path();
+        println!("Listening on {:?}", sock_path);
+
         let uds = UnixListener::bind(sock_path)?;
-        UnixListenerStream::new(uds);
+        UnixListenerStream::new(uds)
     };
 
     let builder = Server::builder()
