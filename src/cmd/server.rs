@@ -8,6 +8,7 @@ use tokio::signal;
 use tokio::sync::{mpsc, Mutex};
 use tonic::codegen::tokio_stream::wrappers::UnixListenerStream;
 use tonic::transport::Server;
+use tracing::{debug, info};
 
 async fn shutdown_signal(mut shutdown_rx: mpsc::Receiver<()>) {
     let ctrl_c_fut = async {
@@ -32,19 +33,15 @@ async fn shutdown_signal(mut shutdown_rx: mpsc::Receiver<()>) {
         _ = term_fut => {},
         _ = shutdown_fut => {},
     }
-    println!("shutdown signal received");
+    debug!("shutdown signal received");
 
-    println!("removing socket file...");
+    debug!("removing socket file...");
     std::fs::remove_file(get_sock_path()).expect("failed to remove socket file");
-
-    println!("shutdown successfully");
 }
 
 pub(crate) async fn run() -> Result<(), Box<dyn std::error::Error>> {
-    println!("Starting server...");
-
     let sock_path = get_sock_path();
-    println!("Listening on {:?}", sock_path);
+    info!("listening on {:?}", sock_path);
 
     let (shutdown_tx, shutdown_rx) = mpsc::channel(1);
     let db_conn = Mutex::new(Connection::open_in_memory()?);

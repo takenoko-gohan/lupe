@@ -5,6 +5,7 @@ mod util;
 
 use crate::cmd::load::TableType;
 use clap::{Parser, Subcommand};
+use tracing::error;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -12,6 +13,8 @@ use clap::{Parser, Subcommand};
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+    #[arg(long)]
+    debug: bool,
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -40,6 +43,18 @@ enum Commands {
 async fn main() {
     let cli = Cli::parse();
 
+    if cli.debug {
+        tracing_subscriber::fmt()
+            .with_env_filter("info,lupe=debug")
+            .with_target(false)
+            .init();
+    } else {
+        tracing_subscriber::fmt()
+            .with_env_filter("info")
+            .with_target(false)
+            .init();
+    }
+
     // You can check for the existence of subcommands, and if found use their
     // matches just as you would the top level cmd
     if let Err(e) = match &cli.command {
@@ -52,7 +67,7 @@ async fn main() {
         Commands::Query { query } => cmd::query::run(query.clone()).await,
         Commands::Server => cmd::server::run().await,
     } {
-        eprintln!("Error: {}", e);
+        error!("{}", e);
         std::process::exit(1);
     }
 }

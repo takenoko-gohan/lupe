@@ -39,7 +39,7 @@ pub(crate) fn raw_query(
     let mut stmt = conn.prepare(query)?;
     let columns: Columns = stmt
         .query_arrow([])
-        .map_err(|e| format!("Failed to query: {:?}", e))?
+        .map_err(|e| format!("failed to query: {:?}", e))?
         .collect::<Vec<RecordBatch>>()
         .try_into()?;
 
@@ -87,7 +87,7 @@ impl TryFrom<Columns> for QueryResult {
 
         for i in 0..value.len() {
             let Some(column) = value.get(i) else {
-                return Err(format!("Failed to get column: {:?}", i).into());
+                return Err(format!("failed to get column: {:?}", i).into());
             };
             header.push(column.name.clone());
 
@@ -562,7 +562,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     .iter()
                     .map(|v| match v {
                         Some(v) => String::from_utf8(v.to_vec())
-                            .unwrap_or_else(|e| format!("Failed to convert to string: {:?}", e)),
+                            .unwrap_or_else(|e| format!("failed to convert to string: {:?}", e)),
                         None => "NULL".to_string(),
                     })
                     .collect())
@@ -573,7 +573,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     .iter()
                     .map(|v| match v {
                         Some(v) => String::from_utf8(v.to_vec())
-                            .unwrap_or_else(|e| format!("Failed to convert to string: {:?}", e)),
+                            .unwrap_or_else(|e| format!("failed to convert to string: {:?}", e)),
                         None => "NULL".to_string(),
                     })
                     .collect())
@@ -584,7 +584,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     .iter()
                     .map(|v| match v {
                         Some(v) => String::from_utf8(v.to_vec())
-                            .unwrap_or_else(|e| format!("Failed to convert to string: {:?}", e)),
+                            .unwrap_or_else(|e| format!("failed to convert to string: {:?}", e)),
                         None => "NULL".to_string(),
                     })
                     .collect())
@@ -595,14 +595,14 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     .iter()
                     .map(|v| match v {
                         Some(v) => String::from_utf8(v.to_vec())
-                            .unwrap_or_else(|e| format!("Failed to convert to string: {:?}", e)),
+                            .unwrap_or_else(|e| format!("failed to convert to string: {:?}", e)),
                         None => "NULL".to_string(),
                     })
                     .collect())
             }
             DataType::Utf8 => {
                 let Some(array) = value.as_any().downcast_ref::<StringArray>() else {
-                    return Err(format!("Failed to downcast to StringArray: {:?}", value).into());
+                    return Err(format!("failed to downcast to StringArray: {:?}", value).into());
                 };
                 array
                     .iter()
@@ -615,7 +615,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
             DataType::LargeUtf8 => {
                 let Some(array) = value.as_any().downcast_ref::<LargeStringArray>() else {
                     return Err(
-                        format!("Failed to downcast to LargeStringArray: {:?}", value).into(),
+                        format!("failed to downcast to LargeStringArray: {:?}", value).into(),
                     );
                 };
                 array
@@ -629,7 +629,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
             DataType::Utf8View => {
                 let Some(array) = value.as_any().downcast_ref::<StringViewArray>() else {
                     return Err(
-                        format!("Failed to downcast to StringViewArray: {:?}", value).into(),
+                        format!("failed to downcast to StringViewArray: {:?}", value).into(),
                     );
                 };
                 array
@@ -640,7 +640,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     })
                     .collect()
             }
-            _ => Err(format!("Unsupported data type: {:?}", value).into()),
+            _ => Err(format!("unsupported data type: {:?}", value).into()),
         }
     }
 }

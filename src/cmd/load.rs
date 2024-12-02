@@ -5,6 +5,7 @@ use crate::util::uds::{create_channel, get_sock_path};
 use clap::ValueEnum;
 use tokio::process::Command;
 use tonic::Request;
+use tracing::{debug, info};
 
 #[derive(ValueEnum, Debug, Clone)]
 pub(crate) enum TableType {
@@ -29,7 +30,9 @@ pub(crate) async fn run(
     let exe_path = std::env::current_exe()?;
 
     if !get_sock_path().exists() {
+        info!("starting server...");
         let _child = Command::new(exe_path).arg("server").spawn()?;
+        info!("server start successfully");
     }
 
     let channel = create_channel().await?;
@@ -38,11 +41,11 @@ pub(crate) async fn run(
     let health_req = Request::new(HealthCheckRequest::default());
     match mgmt_client.health_check(health_req).await {
         Ok(resp) => {
-            println!("Debug: response={:?}", resp);
-            println!("Debug: Server is up and running");
+            debug!("response={:?}", resp);
+            debug!("server is up and running");
         }
         Err(e) => {
-            eprintln!("Error: {:?}", e);
+            return Err(e.message().into());
         }
     }
 
@@ -57,7 +60,10 @@ pub(crate) async fn run(
         table_name,
         s3_uri,
     });
-    ope_client.create_table(create_table_req).await?;
+    ope_client
+        .create_table(create_table_req)
+        .await
+        .map_err(|e| e.message().to_string())?;
 
     Ok(())
 }
