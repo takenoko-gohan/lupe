@@ -1,8 +1,6 @@
 use crate::pb::db::{RawQueryReply, Row};
 use chrono::NaiveTime;
-use duckdb::arrow::array::{
-    Array, AsArray, LargeStringArray, RecordBatch, StringArray, StringViewArray,
-};
+use duckdb::arrow::array::{Array, AsArray, RecordBatch};
 use duckdb::arrow::datatypes::{
     DataType, Date32Type, Date64Type, DurationMicrosecondType, DurationMillisecondType,
     DurationNanosecondType, DurationSecondType, Float16Type, Float32Type, Float64Type, Int16Type,
@@ -601,9 +599,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     .collect())
             }
             DataType::Utf8 => {
-                let Some(array) = value.as_any().downcast_ref::<StringArray>() else {
-                    return Err(format!("failed to downcast to StringArray: {:?}", value).into());
-                };
+                let array = value.as_string::<i32>();
                 array
                     .iter()
                     .map(|v| match v {
@@ -613,11 +609,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     .collect()
             }
             DataType::LargeUtf8 => {
-                let Some(array) = value.as_any().downcast_ref::<LargeStringArray>() else {
-                    return Err(
-                        format!("failed to downcast to LargeStringArray: {:?}", value).into(),
-                    );
-                };
+                let array = value.as_string::<i64>();
                 array
                     .iter()
                     .map(|v| match v {
@@ -627,11 +619,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     .collect()
             }
             DataType::Utf8View => {
-                let Some(array) = value.as_any().downcast_ref::<StringViewArray>() else {
-                    return Err(
-                        format!("failed to downcast to StringViewArray: {:?}", value).into(),
-                    );
-                };
+                let array = value.as_string_view();
                 array
                     .iter()
                     .map(|v| match v {
