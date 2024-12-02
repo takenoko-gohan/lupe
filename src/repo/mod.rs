@@ -1,8 +1,6 @@
 use crate::pb::db::{RawQueryReply, Row};
 use chrono::NaiveTime;
-use duckdb::arrow::array::{
-    Array, AsArray, LargeStringArray, RecordBatch, StringArray, StringViewArray,
-};
+use duckdb::arrow::array::{Array, AsArray, RecordBatch};
 use duckdb::arrow::datatypes::{
     DataType, Date32Type, Date64Type, DurationMicrosecondType, DurationMillisecondType,
     DurationNanosecondType, DurationSecondType, Float16Type, Float32Type, Float64Type, Int16Type,
@@ -39,7 +37,7 @@ pub(crate) fn raw_query(
     let mut stmt = conn.prepare(query)?;
     let columns: Columns = stmt
         .query_arrow([])
-        .map_err(|e| format!("Failed to query: {:?}", e))?
+        .map_err(|e| format!("failed to query: {:?}", e))?
         .collect::<Vec<RecordBatch>>()
         .try_into()?;
 
@@ -87,7 +85,7 @@ impl TryFrom<Columns> for QueryResult {
 
         for i in 0..value.len() {
             let Some(column) = value.get(i) else {
-                return Err(format!("Failed to get column: {:?}", i).into());
+                return Err(format!("failed to get column: {:?}", i).into());
             };
             header.push(column.name.clone());
 
@@ -408,7 +406,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     }
                     Ok(values.into())
                 }
-                _ => Err(format!("Unsupported time unit: {:?}", unit).into()),
+                _ => Err(format!("unsupported time unit: {:?}", unit).into()),
             },
             DataType::Time64(unit) => match unit {
                 TimeUnit::Microsecond => {
@@ -435,7 +433,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     }
                     Ok(values.into())
                 }
-                _ => Err(format!("Unsupported time unit: {:?}", unit).into()),
+                _ => Err(format!("unsupported time unit: {:?}", unit).into()),
             },
             DataType::Duration(unit) => match unit {
                 TimeUnit::Second => {
@@ -562,7 +560,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     .iter()
                     .map(|v| match v {
                         Some(v) => String::from_utf8(v.to_vec())
-                            .unwrap_or_else(|e| format!("Failed to convert to string: {:?}", e)),
+                            .unwrap_or_else(|e| format!("failed to convert to string: {:?}", e)),
                         None => "NULL".to_string(),
                     })
                     .collect())
@@ -573,7 +571,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     .iter()
                     .map(|v| match v {
                         Some(v) => String::from_utf8(v.to_vec())
-                            .unwrap_or_else(|e| format!("Failed to convert to string: {:?}", e)),
+                            .unwrap_or_else(|e| format!("failed to convert to string: {:?}", e)),
                         None => "NULL".to_string(),
                     })
                     .collect())
@@ -584,7 +582,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     .iter()
                     .map(|v| match v {
                         Some(v) => String::from_utf8(v.to_vec())
-                            .unwrap_or_else(|e| format!("Failed to convert to string: {:?}", e)),
+                            .unwrap_or_else(|e| format!("failed to convert to string: {:?}", e)),
                         None => "NULL".to_string(),
                     })
                     .collect())
@@ -595,15 +593,13 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     .iter()
                     .map(|v| match v {
                         Some(v) => String::from_utf8(v.to_vec())
-                            .unwrap_or_else(|e| format!("Failed to convert to string: {:?}", e)),
+                            .unwrap_or_else(|e| format!("failed to convert to string: {:?}", e)),
                         None => "NULL".to_string(),
                     })
                     .collect())
             }
             DataType::Utf8 => {
-                let Some(array) = value.as_any().downcast_ref::<StringArray>() else {
-                    return Err(format!("Failed to downcast to StringArray: {:?}", value).into());
-                };
+                let array = value.as_string::<i32>();
                 array
                     .iter()
                     .map(|v| match v {
@@ -613,11 +609,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     .collect()
             }
             DataType::LargeUtf8 => {
-                let Some(array) = value.as_any().downcast_ref::<LargeStringArray>() else {
-                    return Err(
-                        format!("Failed to downcast to LargeStringArray: {:?}", value).into(),
-                    );
-                };
+                let array = value.as_string::<i64>();
                 array
                     .iter()
                     .map(|v| match v {
@@ -627,11 +619,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     .collect()
             }
             DataType::Utf8View => {
-                let Some(array) = value.as_any().downcast_ref::<StringViewArray>() else {
-                    return Err(
-                        format!("Failed to downcast to StringViewArray: {:?}", value).into(),
-                    );
-                };
+                let array = value.as_string_view();
                 array
                     .iter()
                     .map(|v| match v {
@@ -640,7 +628,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     })
                     .collect()
             }
-            _ => Err(format!("Unsupported data type: {:?}", value).into()),
+            _ => Err(format!("unsupported data type: {:?}", value).into()),
         }
     }
 }

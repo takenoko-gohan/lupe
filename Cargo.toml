@@ -13,6 +13,8 @@ prost = "0.13.3"
 tokio = { version = "1.41.1", features = ["rt", "rt-multi-thread", "macros", "signal", "process"] }
 tonic = "0.12.3"
 tower = "0.5.1"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 typed-builder = "0.20.0"
 
 [target.'cfg(windows)'.dependencies]

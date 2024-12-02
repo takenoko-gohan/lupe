@@ -13,6 +13,7 @@ use tokio::sync::{mpsc, Mutex};
 #[cfg(unix)]
 use tonic::codegen::tokio_stream::wrappers::UnixListenerStream;
 use tonic::transport::Server;
+use tracing::{debug, info};
 
 async fn shutdown_signal(mut shutdown_rx: mpsc::Receiver<()>) {
     let ctrl_c_fut = async {
@@ -46,20 +47,16 @@ async fn shutdown_signal(mut shutdown_rx: mpsc::Receiver<()>) {
         _ = shutdown_fut => {},
     }
 
-    println!("shutdown signal received");
+    debug!("shutdown signal received");
 
     #[cfg(unix)]
     {
-        println!("removing socket file...");
+        debug!("removing socket file...");
         std::fs::remove_file(get_sock_path()).expect("failed to remove socket file");
     }
-
-    println!("shutdown successfully");
 }
 
-pub(crate) async fn exec() -> Result<(), Box<dyn std::error::Error>> {
-    println!("Starting server...");
-
+pub(crate) async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let (shutdown_tx, shutdown_rx) = mpsc::channel(1);
     let db_conn = Mutex::new(Connection::open_in_memory()?);
 
@@ -69,7 +66,7 @@ pub(crate) async fn exec() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(unix)]
     let uds_stream = {
         let sock_path = get_sock_path();
-        println!("Listening on {:?}", sock_path);
+        info!("listening on {:?}", sock_path);
 
         let uds = UnixListener::bind(sock_path)?;
         UnixListenerStream::new(uds)

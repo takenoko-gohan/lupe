@@ -7,7 +7,7 @@ use crate::util::uds;
 use comfy_table::Table;
 use tonic::Request;
 
-pub(crate) async fn exec(query: String) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) async fn run(query: String) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(unix)]
     let channel = uds::create_channel().await?;
     #[cfg(windows)]
@@ -15,7 +15,11 @@ pub(crate) async fn exec(query: String) -> Result<(), Box<dyn std::error::Error>
     let mut client = OperationClient::new(channel);
 
     let req = Request::new(RawQueryRequest { query });
-    let resp = client.raw_query(req).await?.into_inner();
+    let resp = client
+        .raw_query(req)
+        .await
+        .map_err(|e| e.message().to_string())?
+        .into_inner();
 
     let mut table = Table::new();
     table.set_header(resp.columns);

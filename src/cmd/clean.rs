@@ -5,8 +5,9 @@ use crate::util::named_pipe;
 #[cfg(unix)]
 use crate::util::uds;
 use tonic::Request;
+use tracing::info;
 
-pub(crate) async fn exec() -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) async fn run() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(unix)]
     if uds::get_sock_path().exists() {
         let channel = uds::create_channel().await?;
@@ -14,10 +15,14 @@ pub(crate) async fn exec() -> Result<(), Box<dyn std::error::Error>> {
 
         let req = Request::new(ShutdownRequest::default());
 
-        println!("Shutting down server...");
-        mgmt_client.shutdown(req).await?;
+        info!("shutting down server...");
+        mgmt_client
+            .shutdown(req)
+            .await
+            .map_err(|e| e.message().to_string())?;
+        info!("shutdown successfully");
     } else {
-        println!("Already shutdown");
+        info!("server is not running");
     }
 
     #[cfg(windows)]
