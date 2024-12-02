@@ -20,12 +20,14 @@ enum Commands {
     Load {
         #[arg(long, value_enum)]
         table_type: TableType,
+        /// e.g. s3://bucket-name/path/to/**/*.log.gz
         #[arg(long)]
         s3_uri: String,
+        /// [default table name: alb: alb_logs, s3: s3_logs]
         #[arg(long)]
         table_name: Option<String>,
     },
-    /// Clean up the server
+    /// Clean up all tables
     Clean,
     /// Execute Raw Query
     Query { query: String },
