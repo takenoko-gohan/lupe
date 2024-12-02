@@ -21,7 +21,7 @@ impl From<TableType> for i32 {
     }
 }
 
-pub(crate) async fn exec(
+pub(crate) async fn run(
     table_type: TableType,
     table_name: Option<String>,
     s3_uri: String,

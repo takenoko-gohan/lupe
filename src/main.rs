@@ -47,10 +47,10 @@ async fn main() {
             table_type,
             table_name,
             s3_uri,
-        } => cmd::load::exec(table_type.clone(), table_name.clone(), s3_uri.to_string()).await,
-        Commands::Clean => cmd::clean::exec().await,
-        Commands::Query { query } => cmd::query::exec(query.clone()).await,
-        Commands::Server => cmd::server::exec().await,
+        } => cmd::load::run(table_type.clone(), table_name.clone(), s3_uri.to_string()).await,
+        Commands::Clean => cmd::clean::run().await,
+        Commands::Query { query } => cmd::query::run(query.clone()).await,
+        Commands::Server => cmd::server::run().await,
     } {
         eprintln!("Error: {}", e);
         std::process::exit(1);

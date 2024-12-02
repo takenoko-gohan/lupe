@@ -4,7 +4,7 @@ use crate::util::uds::create_channel;
 use comfy_table::Table;
 use tonic::Request;
 
-pub(crate) async fn exec(query: String) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) async fn run(query: String) -> Result<(), Box<dyn std::error::Error>> {
     let channel = create_channel().await?;
     let mut client = OperationClient::new(channel);
 

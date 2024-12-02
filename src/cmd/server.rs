@@ -40,7 +40,7 @@ async fn shutdown_signal(mut shutdown_rx: mpsc::Receiver<()>) {
     println!("shutdown successfully");
 }
 
-pub(crate) async fn exec() -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) async fn run() -> Result<(), Box<dyn std::error::Error>> {
     println!("Starting server...");
 
     let sock_path = get_sock_path();
