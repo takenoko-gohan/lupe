@@ -406,7 +406,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     }
                     Ok(values.into())
                 }
-                _ => Err(format!("Unsupported time unit: {:?}", unit).into()),
+                _ => Err(format!("unsupported time unit: {:?}", unit).into()),
             },
             DataType::Time64(unit) => match unit {
                 TimeUnit::Microsecond => {
@@ -433,7 +433,7 @@ impl TryFrom<&Arc<dyn Array>> for Values {
                     }
                     Ok(values.into())
                 }
-                _ => Err(format!("Unsupported time unit: {:?}", unit).into()),
+                _ => Err(format!("unsupported time unit: {:?}", unit).into()),
             },
             DataType::Duration(unit) => match unit {
                 TimeUnit::Second => {
