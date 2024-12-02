@@ -32,8 +32,9 @@ pub(crate) async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
         let req = Request::new(ShutdownRequest::default());
 
-        println!("Shutting down server...");
+        info!("shutting down server...");
         mgmt_client.shutdown(req).await?;
+        info!("shutdown successfully");
     }
 
     Ok(())

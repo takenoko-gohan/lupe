@@ -10,6 +10,7 @@ use tokio::{
 use tonic::transport::server::Connected;
 use tonic::transport::{Channel, Endpoint, Uri};
 use tower::service_fn;
+use tracing::warn;
 use windows::Win32::Foundation::ERROR_PIPE_BUSY;
 
 pub(crate) const PIPE_NAME: &str = r"\\.\pipe\lupe";
@@ -21,16 +22,16 @@ pub(crate) async fn create_channel() -> Result<Channel, Box<dyn std::error::Erro
                 return Ok(channel);
             }
             Err(e) if e.raw_os_error() == Some(ERROR_PIPE_BUSY.0 as i32) => {
-                println!("Warning: failed to connect to named pipe: {:?}", e);
+                warn!("failed to connect to named pipe: {:?}", e);
                 let wait_times = if i == 0 { 1 } else { i * 2 };
-                println!("Retry in {} seconds", wait_times);
+                warn!("retry in {} seconds", wait_times);
                 tokio::time::sleep(std::time::Duration::from_secs(wait_times)).await;
             }
             Err(e) => return Err(e.into()),
         }
     }
 
-    Err("Failed to connect to named pipe".into())
+    Err("failed to connect to named pipe".into())
 }
 
 async fn connect() -> Result<Channel, io::Error> {
