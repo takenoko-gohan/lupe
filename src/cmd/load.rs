@@ -1,7 +1,10 @@
 use crate::pb::db::management_client::ManagementClient;
 use crate::pb::db::operation_client::OperationClient;
 use crate::pb::db::{CreateTableRequest, HealthCheckRequest};
-use crate::util::uds::{create_channel, get_sock_path};
+#[cfg(windows)]
+use crate::util::named_pipe;
+#[cfg(unix)]
+use crate::util::uds;
 use clap::ValueEnum;
 use tokio::process::Command;
 use tonic::Request;
@@ -29,14 +32,33 @@ pub(crate) async fn run(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let exe_path = std::env::current_exe()?;
 
-    if !get_sock_path().exists() {
-        info!("starting server...");
-        let _child = Command::new(exe_path).arg("server").spawn()?;
-        info!("server start successfully");
-    }
+    #[cfg(unix)]
+    let (channel, mut mgmt_client) = {
+        if !uds::get_sock_path().exists() {
+            info!("starting server...");
+            let _child = Command::new(exe_path).arg("server").spawn()?;
+            info!("server start successfully");
+        }
 
-    let channel = create_channel().await?;
-    let mut mgmt_client = ManagementClient::new(channel.clone());
+        let channel = uds::create_channel().await?;
+        let mgmt_client = ManagementClient::new(channel.clone());
+
+        (channel, mgmt_client)
+    };
+
+    #[cfg(windows)]
+    let (channel, mut mgmt_client) = {
+        let channel = match named_pipe::create_channel().await {
+            Ok(channel) => channel,
+            Err(_) => {
+                let _child = Command::new(exe_path).arg("server").spawn()?;
+                named_pipe::create_channel().await?
+            }
+        };
+        let mgmt_client = ManagementClient::new(channel.clone());
+
+        (channel, mgmt_client)
+    };
 
     let health_req = Request::new(HealthCheckRequest::default());
     match mgmt_client.health_check(health_req).await {
