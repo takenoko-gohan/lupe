@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 chrono = "0.4.42"
 clap = { version = "4.5.53", features = ["derive"] }
-comfy-table = "7.2.1"
+comfy-table = "8.0.0"
 duckdb = { version = "1.4.2", features = ["bundled"] }
 hyper-util = "0.1.18"
 prost = "0.14.1"

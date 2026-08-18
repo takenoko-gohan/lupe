@@ -186,7 +186,7 @@ dependencies = [
  "atoi",
  "base64",
  "chrono",
- "comfy-table",
+ "comfy-table 7.2.1",
  "half",
  "lexical-core",
  "num",
@@ -521,6 +521,16 @@ name = "comfy-table"
 version = "7.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b03b7db8e0b4b2fdad6c551e634134e99ec000e5c8c3b6856c65e8bbaded7a3b"
+dependencies = [
+ "unicode-segmentation",
+ "unicode-width",
+]
+
+[[package]]
+name = "comfy-table"
+version = "8.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "136c8c4c3823846e8ba6d4bda011b4e5d5827b8bb0ac26c31f9ab31abe9f54f2"
 dependencies = [
  "crossterm",
  "unicode-segmentation",
@@ -1152,7 +1162,7 @@ version = "0.1.1"
 dependencies = [
  "chrono",
  "clap",
- "comfy-table",
+ "comfy-table 8.0.0",
  "duckdb",
  "hyper-util",
  "prost",
