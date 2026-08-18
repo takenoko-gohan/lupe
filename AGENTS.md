@@ -38,6 +38,7 @@ proto/db.proto       service definition; compiled by `build.rs` via tonic-prost-
 - Tests: `cargo test`
 - Lint (CI gates): `cargo fmt --all -- --check` and `cargo clippy --locked --all-targets -- -D warnings`
 - CI is GitHub Actions on `ubuntu-latest` (`.github/workflows/ci.yml`), on push to `main` and on pull requests
+- Dependency updates: Mend Renovate GitHub App, configured by `renovate.jsonc`. It covers Cargo and GitHub Actions only (not `.devcontainer`), groups non-major crate bumps, waits 3 days after a release (`minimumReleaseAge`), and automerges after CI is green
 - Tests use in-memory DuckDB and local files under `tests/fixtures/`. The fixtures are the documented AWS sample lines (ALB access logs, S3 server access logs). They do not call S3 or start the gRPC server
 
 ## Code conventions
@@ -49,7 +50,7 @@ proto/db.proto       service definition; compiled by `build.rs` via tonic-prost-
 - clap uses derive. New public flags are `--kebab-case`
 - gRPC business errors use `Status` (`internal` / `invalid_argument`). Clients return `e.message()`
 - Commit messages follow the existing history: English, Conventional Commits style (`feat:` / `fix:` / `chore:`)
-- Do not change README, dependencies, or `.devcontainer` unless the user asked
+- Do not change README or `.devcontainer` unless the user asked. Version bumps go through Renovate PRs; do not edit `Cargo.toml` / `Cargo.lock` versions by hand unless asked
 
 ## Adding a log type
 
@@ -76,5 +77,5 @@ Arrow-to-string conversion in `src/repo/mod.rs` is an explicit per-type match. U
 ## Boundaries
 
 - Always: run `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, and `cargo test` after changes. If you touch proto, confirm generated code still builds. Keep log-parser tests updated when ALB/S3 SQL or fixtures change
-- Ask first: breaking public CLI changes, adding or updating dependencies, or redesigning DuckDB to persist on disk
+- Ask first: breaking public CLI changes, adding a new dependency, or redesigning DuckDB to persist on disk
 - Never: commit secrets or `target/`. Do not loosen `.devcontainer` allowlists or CA handling unless asked

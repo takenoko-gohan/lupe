@@ -1,0 +1,52 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    // Match this repo's feat:/fix:/chore: commit style.
+    ":semanticCommits",
+    // Refresh Cargo.lock transitives every Monday.
+    ":maintainLockFilesWeekly",
+    // Keep GitHub Actions pinned to commit SHAs (as in .github/workflows/ci.yml).
+    "helpers:pinGitHubActionDigests",
+    "schedule:weekly"
+  ],
+  "timezone": "Asia/Tokyo",
+  // Hold PRs until the release is 3 days old (supply-chain cooldown).
+  "minimumReleaseAge": "3 days",
+  // App crates and CI only. Dockerfile / uv.lock under .devcontainer are out of scope.
+  "enabledManagers": [
+    "cargo",
+    "github-actions"
+  ],
+  // Cargo.toml pins look like "0.4.42"; bump them instead of only touching Cargo.lock.
+  "rangeStrategy": "bump",
+  // Merge when CI is green, including majors. Needs a required status check on main
+  // (and no blocking review requirement for renovate[bot]).
+  "automerge": true,
+  "automergeType": "pr",
+  "automergeStrategy": "squash",
+  "labels": [
+    "dependencies"
+  ],
+  "packageRules": [
+    {
+      "description": "Group Cargo minor and patch updates",
+      "matchManagers": [
+        "cargo"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "Rust crates (non-major)"
+    },
+    {
+      "description": "Group GitHub Actions updates",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "groupName": "GitHub Actions"
+    }
+    // Cargo majors stay one PR each (separateMajorMinor from config:recommended).
+  ]
+}
