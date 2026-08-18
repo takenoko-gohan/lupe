@@ -4,19 +4,19 @@ version = "0.1.1"
 edition = "2021"
 
 [dependencies]
-chrono = "0.4.42"
-clap = { version = "4.5.53", features = ["derive"] }
+chrono = "0.4.45"
+clap = { version = "4.6.6", features = ["derive"] }
 comfy-table = "8.0.0"
-duckdb = { version = "1.4.2", features = ["bundled"] }
-hyper-util = "0.1.18"
-prost = "0.14.1"
-tokio = { version = "1.48.0", default-features = false, features = ["rt", "rt-multi-thread", "macros", "signal", "process"] }
-tonic = "0.14.2"
-tonic-prost = "0.14.2"
-tower = "0.5.2"
-tracing = "0.1.41"
-tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
+duckdb = { version = "1.10505.0", features = ["bundled"] }
+hyper-util = "0.1.20"
+prost = "0.14.4"
+tokio = { version = "1.53.1", default-features = false, features = ["rt", "rt-multi-thread", "macros", "signal", "process"] }
+tonic = "0.14.6"
+tonic-prost = "0.14.6"
+tower = "0.5.3"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 typed-builder = "0.23.2"
 
 [build-dependencies]
-tonic-prost-build = "0.14.2"
+tonic-prost-build = "0.14.6"
