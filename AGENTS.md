@@ -33,7 +33,7 @@ proto/db.proto       service definition; compiled by `build.rs` via tonic-prost-
 - Format: `cargo fmt`
 - Lint: `cargo clippy --all-targets -- -D warnings`
 - DuckDB is `bundled`, so the first build is slow
-- Rebuilding is required after changing `proto/db.proto`
+- Rebuilding is required after changing `proto/db.proto`. CI installs `protobuf-compiler` because `build.rs` needs `protoc`
 - `load` needs AWS credentials in the environment (config / STS / SSO / env vars)
 - Tests: `cargo test`
 - Lint (CI gates): `cargo fmt --all -- --check` and `cargo clippy --locked --all-targets -- -D warnings`
