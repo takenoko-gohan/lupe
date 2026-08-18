@@ -1,0 +1,89 @@
+# =============================================================================
+# Two services and two networks.
+#   - cursor : the Cursor Agent execution environment. Attached only to the internal
+#              network, so it cannot reach the outside.
+#   - mitm   : an SSL Bump forward proxy built on mitmproxy. Attached to both networks,
+#              it relays traffic to the outside.
+# The only path from cursor to the outside is mitm:3128.
+# =============================================================================
+
+services:
+  mitm:
+    build:
+      context: ./mitm
+    init: true
+    restart: unless-stopped
+    networks:
+      - internal
+      - egress
+    volumes:
+      - ca-shared:/shared/ca                 # the public CA certificate, shared with cursor (rw)
+      # The CA private key is isolated in a mitm-only volume and never mounted into cursor
+      # (keeping the key on the shared volume and protecting it with chmod 600 does not work
+      #  under rootless Podman with userns keep-id, because mitm's root maps to cursor's
+      #  uid 1000. See gen-ca.sh.)
+      - ca-private:/private/ca
+      # The allowlist files are bind-mounted. After editing them, `restart mitm` is enough
+      # (no image rebuild). They are not baked into the image, so these mounts are required.
+      - ./mitm/read-allowlist.txt:/etc/proxy/read-allowlist.txt:ro
+      - ./mitm/write-allowlist.txt:/etc/proxy/write-allowlist.txt:ro
+      - ./mitm/graphql-endpoints.txt:/etc/proxy/graphql-endpoints.txt:ro
+      - ./mitm/tls-passthrough.txt:/etc/proxy/tls-passthrough.txt:ro
+    healthcheck:
+      # Healthy once 3128 responds (policy.py returns 200 ok)
+      test: [ "CMD-SHELL", "curl -s -o /dev/null --max-time 3 http://localhost:3128 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  cursor:
+    build:
+      context: ./cursor
+    # Podman-specific user-namespace mapping. Docker Engine does not support `keep-id`,
+    # so Docker Desktop users must delete or comment out the next line (leaving it unset).
+    # The CA private key remains isolated because ca-private is never mounted here.
+    userns_mode: "keep-id:uid=1000,gid=1000"
+    init: true
+    networks:
+      - internal                             # IMPORTANT: no egress attachment = no direct internet
+    depends_on:
+      mitm:
+        condition: service_healthy           # start only after the CA is generated and the proxy is up
+    volumes:
+      - ..:/workspace:cached                 # the repository root as the workspace
+      # Mount the policy definitions (policy.py / write-allowlist.txt / compose.yaml) over
+      # the workspace as read-only so they cannot be rewritten from inside the container.
+      # A mount point cannot be unlinked, so deleting or replacing the whole directory is
+      # prevented as well. Changes to the devcontainer setup are made on the host.
+      - ../.devcontainer:/workspace/.devcontainer:ro
+      - ca-shared:/shared/ca:ro              # public CA certificate only (read-only; private key remains on the mitm side)
+      - cursor-settings:/home/cursor/.cursor          # CLI settings / chats
+      - cursor-auth:/home/cursor/.config/cursor       # agent login credentials
+      - gh-config:/home/cursor/.config/gh             # gh auth credentials
+      - cursor-bashhistory:/commandhistory            # shell history
+    environment:
+      HTTP_PROXY: "http://mitm:3128"
+      HTTPS_PROXY: "http://mitm:3128"
+      http_proxy: "http://mitm:3128"
+      https_proxy: "http://mitm:3128"
+      NO_PROXY: "localhost,127.0.0.1,mitm"
+      no_proxy: "localhost,127.0.0.1,mitm"
+      # Node/npm do not look at the system CA by default, which causes certificate errors after SSL Bump.
+      NODE_OPTIONS: "--use-system-ca"
+      # Java/Gradle do not read the HTTP(S)_PROXY environment variables. Point them at the proxy explicitly.
+      JAVA_TOOL_OPTIONS: "-Dhttps.proxyHost=mitm -Dhttps.proxyPort=3128 -Dhttp.proxyHost=mitm -Dhttp.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|mitm"
+    command: sleep infinity
+
+networks:
+  internal:
+    internal: true        # IMPORTANT: externally isolated; no direct route to the outside
+  egress: { }              # an ordinary bridge (NAT to the outside)
+
+volumes:
+  ca-shared: { }
+  ca-private: { }         # IMPORTANT: mounted only into mitm (the CA private key)
+  cursor-settings: { }
+  cursor-auth: { }
+  gh-config: { }
+  cursor-bashhistory: { }

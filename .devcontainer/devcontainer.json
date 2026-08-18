@@ -1,0 +1,17 @@
+{
+  "name": "cursor-agent-isolated",
+  "dockerComposeFile": "compose.yaml",
+  "service": "cursor",
+  "workspaceFolder": "/workspace",
+  "remoteUser": "cursor",
+  "overrideCommand": false,
+  "shutdownAction": "stopCompose",
+  "postCreateCommand": "git config --global --add safe.directory /workspace",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
+    }
+  }
+}

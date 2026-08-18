@@ -1,0 +1,20 @@
+# A project definition used to pin mitmproxy, graphql-core, and the supported Python range.
+# It holds no application code (the decision logic lives in policy.py as an addon).
+#
+# Update procedure:
+#   1. Change the mitmproxy version here
+#   2. Run `uv lock` in this directory to regenerate uv.lock
+#   3. docker compose -f .devcontainer/compose.yaml build mitm
+#   4. Always run .devcontainer/tests/regression-suite.sh
+#      (some mitmproxy options have permissive defaults that can change between versions)
+[project]
+name = "devcontainer-proxy"
+version = "0"
+requires-python = ">=3.13"
+dependencies = [
+    "mitmproxy==12.2.3",
+    # Used by policy.py to interpret GraphQL bodies.
+    # String matching cannot distinguish the mutation keyword from the same word inside a
+    # string literal, so the body is parsed with the reference implementation's grammar.
+    "graphql-core==3.2.11",
+]

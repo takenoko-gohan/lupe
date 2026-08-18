@@ -1,0 +1,25 @@
+# =============================================================================
+# Domains whose TLS is not decrypted (opaque tunnel after CONNECT).
+#
+# Use this for destinations that must keep end-to-end TLS / HTTP/2 keepalives, such as
+# Cursor Agent long-lived streams. Method, path, and body are invisible to policy.py once
+# a connection is passed through — only the CONNECT host and Safe_ports still apply.
+#
+# Format: one domain per line (allowlist domain syntax). Path patterns are not allowed.
+# Everything after # is a comment.
+#   .example.com               leading dot = matches subdomains and the apex
+#   example.com                no dot = exact match (subdomains are not included)
+# "*" (every domain) is rejected at startup.
+#
+# Do not list destinations that rely on write/path/GraphQL restrictions (for example
+# GitHub). Adding them here would bypass those checks.
+#
+# This file is bind-mounted into the mitm container, so after editing it no rebuild is
+# needed: `restart mitm` is enough (edit it on the host).
+# =============================================================================
+
+# Cursor Agent / API / auth / CDN / VMs (see cursor.com/docs/enterprise/network-configuration)
+.cursor.sh
+.cursorapi.com
+.cursor-cdn.com
+.cursorvm.com
