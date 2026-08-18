@@ -35,7 +35,10 @@ proto/db.proto       service definition; compiled by `build.rs` via tonic-prost-
 - DuckDB is `bundled`, so the first build is slow
 - Rebuilding is required after changing `proto/db.proto`
 - `load` needs AWS credentials in the environment (config / STS / SSO / env vars)
-- There is no test crate or CI workflow yet
+- Tests: `cargo test`
+- Lint (CI gates): `cargo fmt --all -- --check` and `cargo clippy --locked --all-targets -- -D warnings`
+- CI is GitHub Actions on `ubuntu-latest` (`.github/workflows/ci.yml`), on push to `main` and on pull requests
+- Tests use in-memory DuckDB and local files under `tests/fixtures/`. The fixtures are the documented AWS sample lines (ALB access logs, S3 server access logs). They do not call S3 or start the gRPC server
 
 ## Code conventions
 
@@ -56,7 +59,7 @@ When adding a `--table-type`, update all of the following. Numeric values must m
 |---|---|
 | `proto/db.proto` | Add a value to `enum TableType` |
 | `src/cmd/load.rs` | clap `TableType`, `From<TableType> for i32`, default table name |
-| `src/repo/<type>.rs` | Implement `Client` and pin the schema with `CREATE TABLE ... AS` |
+| `src/repo/<type>.rs` | Implement `Client` and pin the schema with `CREATE TABLE ... AS`. Add a fixture under `tests/fixtures/` and a `create_table` test |
 | `src/repo/mod.rs` | Export the module |
 | `src/pb/mod.rs` | Add a branch to the `match req.table_type` in `create_table` |
 
@@ -72,6 +75,6 @@ Arrow-to-string conversion in `src/repo/mod.rs` is an explicit per-type match. U
 
 ## Boundaries
 
-- Always: run `cargo fmt` and `cargo clippy` after changes. If you touch proto, confirm generated code still builds
+- Always: run `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, and `cargo test` after changes. If you touch proto, confirm generated code still builds. Keep log-parser tests updated when ALB/S3 SQL or fixtures change
 - Ask first: breaking public CLI changes, adding or updating dependencies, or redesigning DuckDB to persist on disk
 - Never: commit secrets or `target/`. Do not loosen `.devcontainer` allowlists or CA handling unless asked
