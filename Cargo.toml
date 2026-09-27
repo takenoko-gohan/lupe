@@ -8,7 +8,7 @@ chrono = "0.4.45"
 clap = { version = "4.6.7", features = ["derive"] }
 comfy-table = "8.0.0"
 duckdb = { version = "1.10505.0", features = ["bundled"] }
-hyper-util = "0.1.20"
+hyper-util = "0.1.21"
 prost = "0.14.4"
 tokio = { version = "1.53.1", default-features = false, features = ["rt", "rt-multi-thread", "macros", "signal", "process"] }
 tonic = "0.14.6"
